@@ -1,0 +1,139 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2578
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 Helvetica-Oblique;\f2\fswiss\fcharset0 Helvetica-Bold;
+}
+{\colortbl;\red255\green255\blue255;\red251\green2\blue7;\red102\green177\blue50;\red251\green2\blue255;
+\red0\green0\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c100000\c14913\c0;\cssrgb\c46532\c73327\c25364;\cssrgb\c100000\c25279\c100000;
+\cssrgb\c1680\c19835\c100000;\cssrgb\c0\c0\c0;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww14780\viewh6500\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Urgent Department Simulation System\
+\
+1. How to set the values of variables 
+\f1\i modePatient
+\f0\i0  and 
+\f1\i modeDoctor 
+\f0\i0 for experiments? \
+\
+In agent 
+\f1\i Planificateur
+\f0\i0 :\
+    In state 
+\f1\i choosePatient
+\f0\i0 , set the value of 
+\f1\i modePatient
+\f0\i0 , then use 
+\f1\i findFirst
+\f0\i0  to find the patient relying on its admission time;\
+    In state 
+\f1\i scheduleDoctor
+\f0\i0 , set the value of 
+\f1\i modeDoctor
+\f0\i0 , then call function 
+\f1\i trouverDocteur
+\f0\i0 .\
+Note that condition 
+\f1\i modePatient = 2 
+\f0\i0 makes condition 
+\f1\i modeDoctor = 2
+\f0\i0  come true.\
+\
+\ul Potential Question1: why we need to choose patients first?\ulnone \
+Answer: First of all, it is not the only way to simulate the flow of patients in the emergency department.\
+We decide patients first because requirements come from patients. It is patients who trigger this flow.\
+P\ul otential Question2: why we need to call doctors in state 
+\f1\i choosePatient
+\f0\i0 ?\ulnone \
+Answer: it is because we consider mode autonomous for doctors, meaning doctors are able to choose their patients as they prefer. In this case, the patients who have the priority are not necessarily chosen by patients first. It allows for more flexibility. \
+\
+2. What does agent 
+\f1\i Planificateur
+\f0\i0  do?\
+It is dedicated to planning the resource assignment, including patients, nurses, boxes, and doctors.\
+\
+3. Why are there two servers in agent 
+\f1\i Planificateur
+\f0\i0 ?\
+We are giving two concurrent servers to better organise the assignment work. These two servers work in parallel. When there are a number of demands, adding another server helps share the workloads.\
+\
+4. How to ensure that there are no conflicts concerning the read of data?\
+Yes, in our opinion, conflicts will never happen in our simulation. Resources include patients, nurses, doctors, and boxes. The information of 
+\f2\b \cf2 patients
+\f0\b0 \cf0  is store in collection 
+\f1\i collectionDemandes
+\f0\i0 . As soon as one demand is 
+\f2\b \cf2 removed from this collection
+\f0\b0 \cf0 . No other severs can take the same demand. For 
+\f2\b \cf3 nurses
+\f0\b0 \cf0 , when they are chosen, their states turn to be 1 
+\f2\b \cf3 (state = 1)
+\f0\b0 \cf0  so no one else can choose them again unless their states turns back to 0. As for 
+\f2\b \cf4 boxes
+\f0\b0 \cf0 , when the appropriate box is chosen, this box will be 
+\f2\b \cf4 removed from the set of boxes
+\f0\b0 \cf0 . In terms of doctors, agent 
+\f2\b \cf5 Doctor
+\f0\b0 \cf0  has its statechart, because doctors have different features they won\'92t disappear. To choose doctors, we have verify whether they are available 
+\f2\b \cf5 (disponibilit\'e9 = true) 
+\f0\b0 \cf0 and whether they are occupied \cf5 (
+\f2\b state = 1
+\f0\b0 )\cf0 . Thus, each kind of resources has its way to indicate their states.\
+\
+5. How to assign the boxes?\
+Generally speaking, 1-> internal; 2 -> surgical; 3 -> orthopedic.\
+We first find the 
+\f2\b \cf5 box matching the patient\'92s type
+\f0\b0 \cf0  via looking at its colour.  When the box is chosen, its information allowing patients, doctors, and nurses to find them is stored in variable 
+\f1\i indexUG
+\f0\i0 / 
+\f1\i indexUF
+\f0\i0 .\
+So that at the end, they can go to the same box by applying this variable.\
+\
+6. How to centralise the doctors?\
+Centralising implies the smaller the absolute value of the difference between the competence of doctors and the severity of patients is the doctors are more centralised.\
+\
+7. What does \'ab\'a0\'a0appartenance \'bb mean ?\
+It means where doctors stay to wait for patients. It includes corridor, doctors resting room, and box.\
+Boxes are where doctors work.\
+\
+8. How to schedule nurses?\
+Main.scheduleResource.renewNurse \
+    \'97change the number of available nurses as you want.	\
+    \'97change the availability  of nurses  \
+        \'97 Nurse.checkAvailability \
+            \'97 change the state of the nurse\'92s statechart.\
+                 \'97 change the availability of nurses\
+
+\f2\b \cf5 When nurses are available, they usually work for ten minutes. Then, they will start another work. In other words, once a task is arrived, one chosen nurse will pick up this task and take ten minutes to finish the work.\
+\
+
+\f0\b0 \cf6 9. How to assign doctors to boxes?\
+Doctors are located: in the corridor, in the doctors\'92 waiting rooms, and in the boxes. \
+Doctors waiting in the corridor need to return boxes after diagnosis; \
+
+\f2\b \cf2 Doctors waiting in the doctors\'92 waiting rooms didn\'92t need to return boxes! It isn\'92t reasonable. And in method Planificateur \'ab\'a0trouverDocteur\'a0\'bb we didn\'92t consider cases where the membership = 2/3, which is totally false. Even in autonomous mode, we just consider membership = 1. This is definitely false. \
+
+\f0\b0 \cf0 Doctors staying in the boxes always stay there until it\'92s time for them to go home. The assignment of doctors of this type is direct. If there is a box available, they will take it directly.\
+\
+10. For Parameters section of Main, the values of parameters haven\'92t been associated with real parameters.\
+\
+11. How to differentiate experiments with and without hospitalisation?\
+With hospitalisation data is stored in the set of with hospitalisation data.\
+Without hospitalisation data is stored in the set of without hospitalisation data.\
+\
+TODO:\
+1. Redesign the data about doctors (checking appartenance and available boxes).\
+2. Add the reaction of doctors who first stay in the doctor room. (Add actions for Docteur.moveToDoctorRoom)\
+3. Modify the function of \'ab\'a0trouverDocteur\'a0\'bb (consider doctors of appartenance = 2 / 3)\
+\
+X. How to improve this paper? \
+Give more comments!!\
+\
+\
+\
+\
+\
+\
+}
